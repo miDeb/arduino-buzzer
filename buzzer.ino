@@ -1,84 +1,126 @@
+void turn_on_pin(int pin)
+{
+  digitalWrite(pin, HIGH);
+}
+void turn_off_pin(int pin)
+{
+  digitalWrite(pin, LOW);
+}
+
+const int LONG_DURATION = 600;
+const int SHORT_DURATION = 200;
+const int CHAR_DELAY = 500;
+const int REPEAT_DELAY = 2000;
+
+void blink_long()
+{
+  turn_on_pin(buzzer_pin);
+  for (int i = 0; i < 5; i++)
+  {
+    turn_on_pin(led_pins[i]);
+  }
+  delay(SHORT_DURATION);
+  turn_everything_off();
+}
+
+void blink_short()
+{
+  turn_on_pin(buzzer_pin);
+  turn_on_pin(led_pins[0]);
+  delay(SHORT_DURATION);
+  turn_everything_off();
+}
+
+void turn_everything_off()
+{
+  turn_off_pin(buzzer_pin);
+  for (int i = 0; i < 5; i++)
+  {
+    turn_off_pin(led_pins[i]);
+  }
+}
+
+enum Signal
+{
+  Short,
+  Long,
+};
+class Letter
+{
+public:
+  size_t instruction_len;
+  Signal instructions[5];
+
+  void print()
+  {
+    for (int i = 0; i < instruction_len; i++)
+    {
+      switch (instructions[i])
+      {
+      case Long:
+        blink_long();
+        break;
+      case Short:
+        blink_short();
+        break;
+      }
+    }
+    delay(CHAR_DELAY);
+  }
+};
+
+Letter get_letter_for_char(char c)
+{
+  switch (c)
+  {
+  case 'm':
+    return Letter{2, {Long, Long}};
+  case 'i':
+    return Letter{2, {Short, Short}};
+  case 'c':
+    return Letter{4, {Long, Short, Long, Short}};
+  case 'h':
+    return Letter{4, {Short, Short, Short, Short}};
+  case 'a':
+    return Letter{2, {Short, Long}};
+  case 'e':
+    return Letter{1, {Short}};
+  case 'l':
+    return Letter{4, {Short, Long, Short, Short}};
+  default:
+    /*Serial.print("Failed to get code for character: ");
+    Serial.println(c);*/
+    return Letter{0};
+  }
+}
+
+char *text = "michael";
+
 const int buzzer_pin = 12;
-size_t index = 0;
-const size_t lengths_size = 25;
-const int SHORT = 300;
-const int LONG = 600;
-const int BREAK = -600;
-const int SHORT_BREAK = -200;
-const int lengths[lengths_size]{
-  LONG,
-  LONG,
-  BREAK,
-  SHORT,
-  SHORT,
-  BREAK,
-  LONG,
-  SHORT,
-  LONG,
-  SHORT,
-  BREAK,
-  SHORT,
-  SHORT,
-  SHORT,
-  SHORT,
-  BREAK,
-  SHORT,
-  LONG,
-  BREAK,
-  SHORT,
-  BREAK,
-  SHORT,
-  LONG,
-  SHORT,
-  SHORT,
-};
 const int led_pins[5] = {
-  6,
-  7,
-  8,
-  9,
-  10,
+    6,
+    7,
+    8,
+    9,
+    10,
 };
-void setup() {
+void setup()
+{
   pinMode(buzzer_pin, OUTPUT);
-  for (int i = 0; i < 5; i++) {
+  for (int i = 0; i < 5; i++)
+  {
     pinMode(led_pins[i], OUTPUT);
   }
 }
 
-bool was_enabled = false;
-void blink(int amount) {
-  if (amount == SHORT) {
-    digitalWrite(led_pins[0], HIGH);
-    digitalWrite(buzzer_pin, HIGH);
-  } else {
-    for (int i = 0; i < 5; i++) {
-      digitalWrite(led_pins[i], HIGH);
-    }
-    digitalWrite(buzzer_pin, HIGH);
-  }
-  delay(amount);
-
-  for (int i = 0; i < 5; i++) {
-    digitalWrite(led_pins[i], LOW);
-  }
-  digitalWrite(buzzer_pin, LOW);
-}
-void loop() {
-  if (index == lengths_size) {
+int index = 0;
+void loop()
+{
+  if (!text[index])
+  {
     index = 0;
-    delay(1000);
+    delay(REPEAT_DELAY);
   }
-  int next_value = lengths[index];
-  if (was_enabled && next_value > 0) {
-    delay(-SHORT_BREAK);
-  }
-  if (next_value < 0) {
-    delay(-next_value);
-    was_enabled = false;
-  } else {
-    blink(next_value);
-    was_enabled = true;
-  }
-  index++;
+  auto letter = get_letter_for_char(text[index]);
+  letter.print();
 }
