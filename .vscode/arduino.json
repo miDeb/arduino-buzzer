@@ -1,0 +1,4 @@
+{
+    "sketch": "buzzer.ino",
+    "board": "arduino:avr:uno"
+}

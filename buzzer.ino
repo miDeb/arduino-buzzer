@@ -1,16 +1,30 @@
-void turn_on_pin(int pin)
+int const DIT_DURATION = 200;
+int const DAH_DURATION = 3 * DIT_DURATION;
+int const SIGNAL_DELAY = DIT_DURATION;
+int const CHAR_DELAY = 3 * DIT_DURATION;
+int const WORD_DELAY = 7 * DIT_DURATION;
+int const REPEAT_DELAY = 2 * WORD_DELAY;
+
+char const *const text = "Michael";
+
+int const buzzer_pin = 12;
+int const led_pins[5] = {
+    6,
+    7,
+    8,
+    9,
+    10,
+};
+
+void turn_on_pin(int const pin)
 {
   digitalWrite(pin, HIGH);
 }
-void turn_off_pin(int pin)
+
+void turn_off_pin(int const pin)
 {
   digitalWrite(pin, LOW);
 }
-
-const int LONG_DURATION = 600;
-const int SHORT_DURATION = 200;
-const int CHAR_DELAY = 500;
-const int REPEAT_DELAY = 2000;
 
 void blink_long()
 {
@@ -19,7 +33,7 @@ void blink_long()
   {
     turn_on_pin(led_pins[i]);
   }
-  delay(SHORT_DURATION);
+  delay(DAH_DURATION);
   turn_everything_off();
 }
 
@@ -27,7 +41,7 @@ void blink_short()
 {
   turn_on_pin(buzzer_pin);
   turn_on_pin(led_pins[0]);
-  delay(SHORT_DURATION);
+  delay(DIT_DURATION);
   turn_everything_off();
 }
 
@@ -40,70 +54,80 @@ void turn_everything_off()
   }
 }
 
-enum Signal
+void show_char(char const c)
 {
-  Short,
-  Long,
-};
-class Letter
-{
-public:
-  size_t instruction_len;
-  Signal instructions[5];
-
-  void print()
-  {
-    for (int i = 0; i < instruction_len; i++)
-    {
-      switch (instructions[i])
-      {
-      case Long:
-        blink_long();
-        break;
-      case Short:
-        blink_short();
-        break;
-      }
-    }
-    delay(CHAR_DELAY);
-  }
-};
-
-Letter get_letter_for_char(char c)
-{
+  // handle special cases
   switch (c)
   {
-  case 'm':
-    return Letter{2, {Long, Long}};
-  case 'i':
-    return Letter{2, {Short, Short}};
-  case 'c':
-    return Letter{4, {Long, Short, Long, Short}};
-  case 'h':
-    return Letter{4, {Short, Short, Short, Short}};
-  case 'a':
-    return Letter{2, {Short, Long}};
-  case 'e':
-    return Letter{1, {Short}};
-  case 'l':
-    return Letter{4, {Short, Long, Short, Short}};
-  default:
-    /*Serial.print("Failed to get code for character: ");
-    Serial.println(c);*/
-    return Letter{0};
+  case ' ':
+    delay(WORD_DELAY);
+    return;
+  }
+  // handle alphabetic letters
+  auto signals = get_signals_for_char(c);
+  for (char const *s = signals; *s; s++)
+  {
+    if (s != signals)
+    {
+      delay(SIGNAL_DELAY);
+    }
+    switch (*s)
+    {
+    case '-':
+      blink_long();
+      break;
+    case '.':
+      blink_short();
+      break;
+    }
   }
 }
 
-char *text = "michael";
+char const *const get_signals_for_char(char c)
+{
+  char const *const codes[]{
+      ".-",
+      "-...",
+      "-.-.",
+      "-..",
+      ".",
+      "..-.",
+      "--.",
+      "....",
+      "..",
+      ".---",
+      "-.-",
+      ".-..",
+      "--",
+      "-.",
+      "---",
+      ".--.",
+      "--.-",
+      ".-.",
+      "...",
+      "-",
+      "..-",
+      "...-",
+      ".--",
+      "-..-",
+      "-.--",
+      "--..",
+  };
+  if (isUpperCase(c))
+  {
+    c -= ('A' - 'a');
+  }
+  int index = c - 'a';
+  if (index < 0 || index >= (sizeof(codes) / sizeof(*codes)))
+  {
+    Serial.print("failed to get encoding for '");
+    Serial.print(c);
+    Serial.print("'");
+    return "";
+  }
+  return codes[index];
+}
 
-const int buzzer_pin = 12;
-const int led_pins[5] = {
-    6,
-    7,
-    8,
-    9,
-    10,
-};
 void setup()
 {
   pinMode(buzzer_pin, OUTPUT);
@@ -121,6 +145,6 @@ void loop()
     index = 0;
     delay(REPEAT_DELAY);
   }
-  auto letter = get_letter_for_char(text[index]);
-  letter.print();
+  show_char(text[index]);
+  delay(CHAR_DELAY);
 }
