@@ -5,7 +5,7 @@ int const CHAR_DELAY = 3 * DIT_DURATION;
 int const WORD_DELAY = 7 * DIT_DURATION;
 int const REPEAT_DELAY = 2 * WORD_DELAY;
 
-char const *const text = "Michael";
+constexpr char const *const text = "Michael";
 
 int const buzzer_pin = 12;
 int const led_pins[5] = {
@@ -54,7 +54,7 @@ void turn_everything_off()
   }
 }
 
-void show_char(char const c)
+void show_char(char const c, bool const add_leading_delay)
 {
   // handle special cases
   switch (c)
@@ -64,6 +64,10 @@ void show_char(char const c)
     return;
   }
   // handle alphabetic letters
+  if (add_leading_delay)
+  {
+    delay(CHAR_DELAY);
+  }
   auto signals = get_signals_for_char(c);
   for (char const *s = signals; *s; s++)
   {
@@ -122,7 +126,7 @@ char const *const get_signals_for_char(char c)
   {
     Serial.print("failed to get encoding for '");
     Serial.print(c);
-    Serial.print("'");
+    Serial.println("'.");
     return "";
   }
   return codes[index];
@@ -142,9 +146,9 @@ void loop()
 {
   if (!text[index])
   {
+    static_assert(text != "", "text must not be empty");
     index = 0;
     delay(REPEAT_DELAY);
   }
-  show_char(text[index]);
-  delay(CHAR_DELAY);
+  show_char(text[index], index != 0);
 }
