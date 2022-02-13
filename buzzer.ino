@@ -1,14 +1,14 @@
-int const DIT_DURATION = 200;
-int const DAH_DURATION = 3 * DIT_DURATION;
-int const SIGNAL_DELAY = DIT_DURATION;
-int const CHAR_DELAY = 3 * DIT_DURATION;
-int const WORD_DELAY = 7 * DIT_DURATION;
-int const REPEAT_DELAY = 2 * WORD_DELAY;
+constexpr int DIT_DURATION = 200;
+constexpr int DAH_DURATION = 3 * DIT_DURATION;
+constexpr int SIGNAL_DELAY = DIT_DURATION;
+constexpr int CHAR_DELAY = 3 * DIT_DURATION;
+constexpr int WORD_DELAY = 7 * DIT_DURATION;
+constexpr int REPEAT_DELAY = 2 * WORD_DELAY;
 
-constexpr char const *const text = "Michael";
+constexpr char const *text = "Michael";
 
-int const buzzer_pin = 12;
-int const led_pins[5] = {
+constexpr int buzzer_pin = 12;
+constexpr int led_pins[5] = {
     6, 7, 8, 9, 10,
 };
 
@@ -50,7 +50,7 @@ void show_char(char const c, bool const add_leading_delay) {
   if (add_leading_delay) {
     delay(CHAR_DELAY);
   }
-  auto signals = get_signals_for_char(c);
+  auto const signals = get_signals_for_char(c);
   for (char const *s = signals; *s; s++) {
     if (s != signals) {
       delay(SIGNAL_DELAY);
@@ -66,8 +66,10 @@ void show_char(char const c, bool const add_leading_delay) {
   }
 }
 
-char const *const get_signals_for_char(char c) {
-  char const *const codes[]{
+#define SIZE(array) (sizeof(array) / sizeof(array[0]))
+
+char const *get_signals_for_char(char c) {
+  constexpr char const *codes[]{
       ".-",   "-...", "-.-.", "-..",  ".",   "..-.", "--.",  "....", "..",
       ".---", "-.-",  ".-..", "--",   "-.",  "---",  ".--.", "--.-", ".-.",
       "...",  "-",    "..-",  "...-", ".--", "-..-", "-.--", "--..",
@@ -75,12 +77,12 @@ char const *const get_signals_for_char(char c) {
   if (isUpperCase(c)) {
     c -= ('A' - 'a');
   }
-  int index = c - 'a';
-  if (index < 0 || index >= (sizeof(codes) / sizeof(*codes))) {
+  int const index = c - 'a';
+  if (index < 0 || index >= SIZE(codes)) {
     Serial.print("failed to get encoding for '");
     Serial.print(c);
     Serial.println("'.");
-    return "";
+    abort();
   }
   return codes[index];
 }
