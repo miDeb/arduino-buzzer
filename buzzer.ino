@@ -20,8 +20,8 @@ void blink_long() {
   turn_on_pin(buzzer_pin);
   for (int i = 0; i < 5; i++) {
     turn_on_pin(led_pins[i]);
+    delay(DAH_DURATION / 5);
   }
-  delay(DAH_DURATION);
   turn_everything_off();
 }
 
