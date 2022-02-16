@@ -97,9 +97,10 @@ void setup() {
 int index = 0;
 void loop() {
   if (!text[index]) {
-    static_assert(text != "", "text must not be empty");
+    // assert(text != "", "text must not be empty");
     index = 0;
     delay(REPEAT_DELAY);
   }
   show_char(text[index], index != 0);
+  index++;
 }
